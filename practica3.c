@@ -8,7 +8,7 @@
 #define THREADS 2
 
 int *numeros;
-int contador = 0;
+int cantidad_elementos = 0;
 
 void merge(int left, int middle, int right){
     	int i, j, k;
@@ -37,7 +37,7 @@ void merge(int left, int middle, int right){
        	 	}
         	else{
             		numeros[k] = high[j];
-            		j++;
+         		j++;
         	}
         	k++;
     	}
@@ -65,17 +65,13 @@ void* mergeSort(void* arg){
 	Arreglo array = *((Arreglo*)arg);
     	int left = array.left;
     	int right = array.right;
-	printf("Left: %d\n", left);
-	printf("Right: %d\n", right);
     	if (left < right){
         	int middle = left+(right-left)/2;
-		printf("Middle: %d\n", middle);
-        	//pthread_t threads[THREADS];
         	Arreglo a1 = {left, middle};
 		Arreglo a2 = {middle+1, right};
+
         	pthread_create(&threads[0], NULL, mergeSort, &a1);
         	pthread_create(&threads[1], NULL, mergeSort, &a2);
-
         	pthread_join(threads[0], NULL);
         	pthread_join(threads[1], NULL);
 
@@ -103,39 +99,38 @@ int main(int argc, char *argv[]){
     	if (fgets(linea, sizeof(linea), ptr)) {
         	char *token = strtok(linea, ",");
         	while (token != NULL) {
-        		//numeros[contador] = atoi(token);
-         		contador++;
+         		cantidad_elementos++;
             		token = strtok(NULL, ",");
         	}
     	}
-	fseek(ptr, 0, SEEK_SET); // Regresar al inicio del archivo
+	fseek(ptr, 0, SEEK_SET);
 
-	numeros = (int*)malloc(14 * sizeof(int));
+	numeros = (int*)malloc(cantidad_elementos * sizeof(int));
     	if (numeros == NULL) {
         	fprintf(stderr, "Error al asignar memoria\n");
        	 	fclose(ptr);
         return 1;
     	}
 
-	for (int i = 0; i < contador; i++) {
+	for (int i = 0; i < cantidad_elementos; i++) {
         	fscanf(ptr, "%d,", &numeros[i]);
     	}
 
 	fclose(ptr);
 
-	Arreglo arr = {0, contador-1};
+	printf("El arreglo posee %d elementos\n", cantidad_elementos);
+
+	Arreglo arr = {0, cantidad_elementos-1};
 
 	pthread_t tid;
 
     	pthread_create(&tid, NULL, mergeSort, &arr);
     	pthread_join(tid, NULL);
 
-	for(int i = 0; i < contador; i++){
+	printf("Los elementos ordenados son: \n");
+
+	for(int i = 0; i < cantidad_elementos; i++){
 		printf("%d\n", numeros[i]);
 	}
-
-	printf("Cantidad elementos: %d\n", contador);
-
-    	//fclose(ptr);
    	return 0;
 }
