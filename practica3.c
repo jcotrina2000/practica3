@@ -10,72 +10,56 @@
 int *numeros;
 int cantidad_elementos = 0;
 
-void merge(int left, int middle, int right){
-    	int i, j, k;
-    	int n1 = middle - left + 1;
-    	int n2 =  right - middle;
 
-    	//int low[n1], high[n2];
-	int *low = (int *)malloc(n1 * sizeof(int));
-	int *high = (int *)malloc(n2 * sizeof(int));
+void merge(int left, int middle, int right) {
+    	int size1 = middle - left + 1;
+    	int size2 = right - middle;
 
-	if(low == NULL || high == NULL){
-		fprintf(stderr, "Error al asignar memoria\n");
-	}
+    	int *temp = (int *)malloc((size1 + size2) * sizeof(int));
 
-	for (i = 0; i < n1; i++)
-        	low[i] = numeros[left + i];
-    	for (j = 0; j < n2; j++)
-        	high[j] = numeros[middle+ 1+ j];
-    	i = 0;
-    	j = 0;
-    	k = left;
-    	while (i < n1 && j < n2){
-        	if (low[i] <= high[j]){
-            		numeros[k] = low[i];
-            		i++;
-       	 	}
-        	else{
-            		numeros[k] = high[j];
-         		j++;
-        	}
-        	k++;
+    	if (temp == NULL) {
+        	fprintf(stderr, "Error al asignar memoria\n");
+        	return;
     	}
 
-    	while (i < n1){
-        	numeros[k] = low[i];
-        	i++;
-        	k++;
+    	int i = left, j = middle + 1, k = 0;
+
+    	while (i <= middle && j <= right) {
+        	if (numeros[i] <= numeros[j])
+            		temp[k++] = numeros[i++];
+        	else
+            		temp[k++] = numeros[j++];
     	}
 
-    	while (j < n2){
-        	numeros[k] = high[j];
-        	j++;
-        	k++;
-    	}
+    	while (i <= middle)
+        	temp[k++] = numeros[i++];
 
-	free(low);
-	free(high);
+    	while (j <= right)
+        	temp[k++] = numeros[j++];
+
+    	for (k = 0; k < size1 + size2; k++)
+        	numeros[left + k] = temp[k];
+
+    	free(temp);
 }
-
 
 
 void* mergeSort(void* arg){
 	pthread_t threads[THREADS];
 	Arreglo array = *((Arreglo*)arg);
-    	int left = array.left;
-    	int right = array.right;
-    	if (left < right){
-        	int middle = left+(right-left)/2;
-        	Arreglo a1 = {left, middle};
-		Arreglo a2 = {middle+1, right};
+    	int first = array.first;
+    	int last = array.last;
+    	if (first < last){
+        	int middle = first+(last-first)/2;
+        	Arreglo arr1 = {first, middle};
+		Arreglo arr2 = {middle+1, last};
 
-        	pthread_create(&threads[0], NULL, mergeSort, &a1);
-        	pthread_create(&threads[1], NULL, mergeSort, &a2);
+        	pthread_create(&threads[0], NULL, mergeSort, &arr1);
+        	pthread_create(&threads[1], NULL, mergeSort, &arr2);
         	pthread_join(threads[0], NULL);
         	pthread_join(threads[1], NULL);
 
-        	merge(left, middle, right);
+        	merge(first, middle, last);
     	}
 	return NULL;
 }
@@ -120,17 +104,17 @@ int main(int argc, char *argv[]){
 
 	printf("El arreglo posee %d elementos\n", cantidad_elementos);
 
-	Arreglo arr = {0, cantidad_elementos-1};
+	Arreglo arreglo = {0, cantidad_elementos-1};
 
 	pthread_t tid;
 
-    	pthread_create(&tid, NULL, mergeSort, &arr);
+    	pthread_create(&tid, NULL, mergeSort, &arreglo);
     	pthread_join(tid, NULL);
 
-	printf("Los elementos ordenados son: \n");
+	printf("Los elementos ordenados de manera ascendente son: \n");
 
 	for(int i = 0; i < cantidad_elementos; i++){
-		printf("%d\n", numeros[i]);
+		printf("%d) %d\n",i+1 ,numeros[i]);
 	}
    	return 0;
 }

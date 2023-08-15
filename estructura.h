@@ -1,8 +1,8 @@
 #ifndef ESTRUCTURA_H
 
 typedef struct Arreglo{
-	int left;
-	int right;
+	int first;
+	int last;
 }Arreglo;
 
 #endif 
