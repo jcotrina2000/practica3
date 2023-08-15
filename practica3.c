@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<pthread.h>
+#include <semaphore.h>
 
 #include"estructura.h"
 
@@ -9,7 +10,7 @@
 
 int *numeros;
 int cantidad_elementos = 0;
-
+sem_t semaforo;
 
 void merge(int left, int middle, int right) {
     	int size1 = middle - left + 1;
@@ -59,7 +60,10 @@ void* mergeSort(void* arg){
         	pthread_join(threads[0], NULL);
         	pthread_join(threads[1], NULL);
 
+
+		sem_wait(&semaforo);
         	merge(first, middle, last);
+		sem_post(&semaforo);
     	}
 	return NULL;
 }
@@ -67,6 +71,13 @@ void* mergeSort(void* arg){
 
 
 int main(int argc, char *argv[]){
+
+	// Inicializar el semáforo con un valor inicial
+    	if (sem_init(&semaforo, 0, 1) == -1) {
+        	perror("Error al inicializar el semáforo");
+        	exit(EXIT_FAILURE);
+    	}
+
     	if(argc != 2){
 		fprintf(stderr, "Uso del programa: mergesort <nombre_archivo:string>");
 		exit(EXIT_FAILURE);
@@ -110,6 +121,8 @@ int main(int argc, char *argv[]){
 
     	pthread_create(&tid, NULL, mergeSort, &arreglo);
     	pthread_join(tid, NULL);
+
+	sem_destroy(&semaforo);
 
 	printf("Los elementos ordenados de manera ascendente son: \n");
 
